@@ -10,29 +10,39 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @State private var brain: CalculatorBrain = .left("0")
+    //@State private var brain: CalculatorBrain = .left("0")
+    
+    @EnvironmentObject var model: CalculatorModel
+    
+    @State private var editingHistory: Bool = false
     
     var body: some View {
         VStack(spacing: 12.0){
             Spacer()
             
-            Text(self.brain.output)
+            Button(action: {
+                self.editingHistory = true
+            }) {
+                Text("操作履历：\(self.model.history.count)")
+            }.sheet(isPresented: self.$editingHistory) {
+                HistoryView(model: self.model)
+            }
+            
+            Text(self.model.brain.output)
                 .font(.system(size: 76))
                 .minimumScaleFactor(0.5)
                 .padding(.trailing, 24)
                 .lineLimit(1)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .trailing)
             
-            CalculatorButtonPad(brain: self.$brain)
+            CalculatorButtonPad()
                 .padding(.bottom)
         }
     }
 }
 
 struct CalculatorButtonPad: View {
-    
-    @Binding var brain: CalculatorBrain
-    
+        
     let pad: [[CalculatorButtonItem]] = [
         [.command(.clear), .command(.flip), .command(.percent), .op(.divide)],
         [.digit(7), .digit(8), .digit(9), .op(.multiply)],
@@ -44,7 +54,7 @@ struct CalculatorButtonPad: View {
     var body: some View {
         VStack(spacing: 8.0) {
             ForEach(pad, id: \.self) { row in
-                CalculatorButtonRow(brain: self.$brain, row: row)
+                CalculatorButtonRow(row: row)
             }
         }
     }
@@ -53,7 +63,7 @@ struct CalculatorButtonPad: View {
 
 struct CalculatorButtonRow: View {
     
-    @Binding var brain: CalculatorBrain
+    @EnvironmentObject var model: CalculatorModel
     
     let row: [CalculatorButtonItem]
     
@@ -63,7 +73,7 @@ struct CalculatorButtonRow: View {
                 CalculatorButton(title: item.title,
                                  size: item.size,
                                  backgroundColorName: item.backgroundColorName) {
-                                    self.brain = self.brain.apply(item: item)
+                                    self.model.apply(item)
                 }
             }
         }
