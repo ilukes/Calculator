@@ -10,23 +10,28 @@ import SwiftUI
 
 struct ContentView: View {
     
+    @State private var brain: CalculatorBrain = .left("0")
+    
     var body: some View {
         VStack(spacing: 12.0){
             Spacer()
             
-            Text("0")
+            Text(self.brain.output)
                 .font(.system(size: 76))
                 .minimumScaleFactor(0.5)
                 .padding(.trailing, 24)
+                .lineLimit(1)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .trailing)
             
-            CalculatorButtonPad()
+            CalculatorButtonPad(brain: self.$brain)
                 .padding(.bottom)
         }
     }
 }
 
 struct CalculatorButtonPad: View {
+    
+    @Binding var brain: CalculatorBrain
     
     let pad: [[CalculatorButtonItem]] = [
         [.command(.clear), .command(.flip), .command(.percent), .op(.divide)],
@@ -39,7 +44,7 @@ struct CalculatorButtonPad: View {
     var body: some View {
         VStack(spacing: 8.0) {
             ForEach(pad, id: \.self) { row in
-                CalculatorButtonRow(row: row)
+                CalculatorButtonRow(brain: self.$brain, row: row)
             }
         }
     }
@@ -47,6 +52,8 @@ struct CalculatorButtonPad: View {
 }
 
 struct CalculatorButtonRow: View {
+    
+    @Binding var brain: CalculatorBrain
     
     let row: [CalculatorButtonItem]
     
@@ -56,7 +63,7 @@ struct CalculatorButtonRow: View {
                 CalculatorButton(title: item.title,
                                  size: item.size,
                                  backgroundColorName: item.backgroundColorName) {
-                                    print("Button: \(item.title)")
+                                    self.brain = self.brain.apply(item: item)
                 }
             }
         }
